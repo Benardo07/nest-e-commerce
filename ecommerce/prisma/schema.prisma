@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id                   String        @id @default(uuid())
+  email                String        @unique
+  password             String
+  username             String        @unique
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  products             Product[]
+  ordersAsBuyer        Order[]       @relation("OrdersBuyer")
+  ordersAsSeller       Order[]       @relation("OrdersSeller")
+  chatMessagesSent     ChatMessage[] @relation("ChatMessagesSent")
+  chatMessagesReceived ChatMessage[] @relation("ChatMessagesReceived")
+  notifications        Notification[]
+
+  @@index([createdAt])
+}
+
+model Product {
+  id           String        @id @default(uuid())
+  name         String
+  description  String
+  price        Decimal
+  stock        Int
+  sellerId     String
+  seller       User          @relation(fields: [sellerId], references: [id])
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  isArchived   Boolean       @default(false)
+  orders       Order[]
+  chatMessages ChatMessage[]
+  @@index([sellerId, createdAt(sort: Desc)])
+  @@index([isArchived])
+}
+
+model Order {
+  id           String        @id @default(uuid())
+  buyerId      String
+  sellerId     String
+  productId    String
+  status       OrderStatus   @default(PENDING)
+  trackingId   String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  buyer        User          @relation("OrdersBuyer", fields: [buyerId], references: [id])
+  seller       User          @relation("OrdersSeller", fields: [sellerId], references: [id])
+  product      Product       @relation(fields: [productId], references: [id])
+  notifications Notification[]
+  timeline     OrderTimelineEntry[]
+
+  @@index([buyerId, createdAt(sort: Desc)])
+  @@index([sellerId, createdAt(sort: Desc)])
+  @@index([productId])
+  @@index([status])
+}
+
+model ChatMessage {
+  id         String   @id @default(uuid())
+  senderId   String
+  receiverId String
+  productId  String
+  message    String
+  createdAt  DateTime @default(now())
+  sender     User     @relation("ChatMessagesSent", fields: [senderId], references: [id])
+  receiver   User     @relation("ChatMessagesReceived", fields: [receiverId], references: [id])
+  product    Product  @relation(fields: [productId], references: [id])
+
+  @@index([productId, createdAt(sort: Desc)])
+  @@index([senderId, createdAt(sort: Desc)])
+  @@index([receiverId, createdAt(sort: Desc)])
+}
+
+model Notification {
+  id          String      @id @default(uuid())
+  recipientId String
+  orderId     String?
+  type        String
+  payload     Json
+  readAt      DateTime?
+  createdAt   DateTime    @default(now())
+  recipient   User        @relation(fields: [recipientId], references: [id])
+  order       Order?      @relation(fields: [orderId], references: [id])
+
+  @@index([recipientId, createdAt(sort: Desc)])
+  @@index([orderId])
+}
+
+model OrderTimelineEntry {
+  id        String      @id @default(uuid())
+  orderId   String
+  status    OrderStatus
+  detail    Json?
+  createdAt DateTime    @default(now())
+  order     Order       @relation(fields: [orderId], references: [id])
+
+  @@index([orderId, createdAt(sort: Desc)])
+}
+
+model OrderEventOutbox {
+  id           String   @id @default(uuid())
+  orderId      String
+  eventType    String
+  payload      Json
+  occurredAt   DateTime @default(now())
+  processedAt  DateTime?
+  attemptCount Int      @default(0)
+  lastError    String?
+  lockedAt     DateTime?
+
+  @@index([processedAt])
+  @@index([orderId])
+  @@index([eventType])
+  @@index([lockedAt])
+}
