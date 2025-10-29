@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -12,6 +13,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { ShipOrderDto } from './dto/ship-order.dto';
 import { OrderService } from './order.service';
 import { OrderModel } from './models/order.model';
+import { ListOrdersDto } from './dto/list-orders.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('orders')
@@ -49,6 +51,14 @@ export class OrderController {
     @CurrentUser() user: RequestUser,
   ): Promise<OrderModel> {
     return this.orderService.completeOrder(id, user.sub);
+  }
+
+  @Get()
+  list(
+    @CurrentUser() user: RequestUser,
+    @Query() query: ListOrdersDto,
+  ) {
+    return this.orderService.listOrdersForUser(user.sub, query.as, query);
   }
 
   @Get(':id')

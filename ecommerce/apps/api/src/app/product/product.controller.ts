@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Param,
   Post,
   Put,
@@ -43,5 +44,10 @@ export class ProductController {
   ): Promise<{ success: true }> {
     await this.productService.deleteProduct(id, user.sub);
     return { success: true };
+  }
+
+  @Get('my')
+  my(@CurrentUser() user: RequestUser): Promise<ProductModel[]> {
+    return this.productService.findMyProducts(user.sub);
   }
 }

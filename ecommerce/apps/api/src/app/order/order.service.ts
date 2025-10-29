@@ -191,18 +191,29 @@ export class OrderService {
 
   async listOrdersForUser(
     userId: string,
-    role: OrderRole,
-    pagination: PaginationDto,
+    role: OrderRole | string,
+    pagination?: PaginationDto,
   ): Promise<OrderConnection> {
+    const normalizedRole: OrderRole =
+      typeof role === 'string'
+        ? role.toLowerCase() === 'buyer'
+          ? OrderRole.BUYER
+          : OrderRole.SELLER
+        : role;
+
+    const { offset = 0, limit = 25 } = pagination ?? {};
+
     const where: Prisma.OrderWhereInput =
-      role === OrderRole.BUYER ? { buyerId: userId } : { sellerId: userId };
+      normalizedRole === OrderRole.BUYER
+        ? { buyerId: userId }
+        : { sellerId: userId };
 
     const [items, total] = await this.prisma.$transaction([
       this.prisma.order.findMany({
         where,
         orderBy: { createdAt: 'desc' },
-        skip: pagination.offset,
-        take: pagination.limit,
+        skip: offset,
+        take: limit,
         include: {
           timeline: {
             orderBy: { createdAt: 'asc' },
