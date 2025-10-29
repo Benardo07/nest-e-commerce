@@ -12,8 +12,7 @@ export class PrismaTransactionalService {
 
   async useTransaction<T>(
     cb: (tx: Prisma.TransactionClient) => Promise<T>,
-    options?: Prisma.TransactionOptions,
   ): Promise<T> {
-    return this.prisma.$transaction(async (tx) => cb(tx), options);
+    return this.prisma.$transaction((tx) => cb(tx));
   }
 }

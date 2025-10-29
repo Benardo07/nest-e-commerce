@@ -5,7 +5,6 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { Logger } from 'nestjs-pino';
 import { PrismaService } from '@ecommerce/shared';
-import type { AppConfig } from '@ecommerce/shared/lib/config/types';
 import { AppModule } from './app/app.module';
 
 async function bootstrap(): Promise<void> {
@@ -14,7 +13,7 @@ async function bootstrap(): Promise<void> {
   const logger = app.get(Logger);
   app.useLogger(logger);
 
-  const configService = app.get(ConfigService<AppConfig>);
+  const configService = app.get(ConfigService);
   const prismaService = app.get(PrismaService);
 
   app.use(helmet());
@@ -22,6 +21,7 @@ async function bootstrap(): Promise<void> {
 
   const allowedOrigins =
     configService.get<string[]>('app.allowedOrigins') ?? ['*'];
+
   app.enableCors({
     origin:
       configService.get<string>('app.nodeEnv') === 'production'
@@ -39,12 +39,12 @@ async function bootstrap(): Promise<void> {
     }),
   );
 
-  const globalPrefix = configService.get<string>('app.globalPrefix', 'api');
+  const globalPrefix = configService.get<string>('app.globalPrefix') ?? 'api';
   app.setGlobalPrefix(globalPrefix);
 
-  await prismaService.enableShutdownHooks(app);
+  prismaService.enableShutdownHooks(app);
 
-  const port = configService.get<number>('app.port', 3000);
+  const port = configService.get<number>('app.port') ?? 3000;
   await app.listen(port);
   logger.log(`API running on http://localhost:${port}/${globalPrefix}`);
 }

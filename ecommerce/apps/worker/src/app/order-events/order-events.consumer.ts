@@ -26,16 +26,24 @@ export class OrderEventsConsumer {
 
     switch (payload.eventType) {
       case 'order_placed':
-        await this.onOrderPlaced(payload);
+        await this.onOrderPlaced(
+          payload as OrderEventEnvelope<'order_placed'>,
+        );
         break;
       case 'order_confirmed':
-        await this.onOrderConfirmed(payload);
+        await this.onOrderConfirmed(
+          payload as OrderEventEnvelope<'order_confirmed'>,
+        );
         break;
       case 'order_shipped':
-        await this.onOrderShipped(payload);
+        await this.onOrderShipped(
+          payload as OrderEventEnvelope<'order_shipped'>,
+        );
         break;
       case 'order_completed':
-        await this.onOrderCompleted(payload);
+        await this.onOrderCompleted(
+          payload as OrderEventEnvelope<'order_completed'>,
+        );
         break;
       default:
         this.logger.warn(`Unhandled order event ${payload.eventType}`);

@@ -1,5 +1,6 @@
-import { PropsWithChildren, useState } from 'react';
-import { ApolloProvider } from '@apollo/client';
+import type { PropsWithChildren } from 'react';
+import { useState } from 'react';
+import { ApolloProvider } from '@apollo/client/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Provider as JotaiProvider } from 'jotai';
 import { apolloClient } from '../lib/graphql/client';

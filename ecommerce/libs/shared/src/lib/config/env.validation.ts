@@ -14,7 +14,7 @@ export const environmentValidationSchema = Joi.object({
   REDIS_TTL_SECONDS: Joi.number().integer().min(30).default(300),
 
   KAFKA_CLIENT_ID: Joi.string().default('ecommerce-api'),
-  KAFKA_BROKERS: Joi.string().default('localhost:9092'),
+  KAFKA_BROKERS: Joi.string().default('localhost:9093'),
   KAFKA_ORDER_EVENTS_TOPIC: Joi.string().default('order_events'),
   KAFKA_CONSUMER_GROUP_PREFIX: Joi.string().default('ecommerce-consumer'),
 

@@ -1,4 +1,5 @@
-import { gql, useQuery } from '@apollo/client';
+import { gql } from '@apollo/client';
+import { useQuery } from '@apollo/client/react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -73,7 +74,7 @@ export const DashboardPage = () => {
               {loading ? (
                 <tr>
                   <td className="px-6 py-6 text-center text-slate-500" colSpan={4}>
-                    Loading orders…
+                    Loading orders...
                   </td>
                 </tr>
               ) : orders.length ? (

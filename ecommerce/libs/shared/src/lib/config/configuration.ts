@@ -19,7 +19,7 @@ export const loadConfiguration = (): AppConfig => ({
   },
   kafka: {
     clientId: process.env.KAFKA_CLIENT_ID ?? 'ecommerce-api',
-    brokers: (process.env.KAFKA_BROKERS ?? 'localhost:9092')
+    brokers: (process.env.KAFKA_BROKERS ?? 'localhost:9093')
       .split(',')
       .map((broker) => broker.trim())
       .filter(Boolean),

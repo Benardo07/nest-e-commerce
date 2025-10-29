@@ -1,12 +1,22 @@
 
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
-import { Request } from 'express';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
+import type { Request } from 'express';
 import { CurrentUser, RequestUser } from '../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { JwtRefreshGuard } from '../common/guards/jwt-refresh.guard';
 import { AuthService } from './auth.service';
 import { AuthResponseDto, LoginDto, RegisterDto } from './dto';
 import { JwtRefreshValidationResult } from './strategies/jwt-refresh.strategy';
+
+type RefreshRequest = Request & { user?: JwtRefreshValidationResult };
 
 @Controller('auth')
 export class AuthController {
@@ -30,8 +40,11 @@ export class AuthController {
 
   @UseGuards(JwtRefreshGuard)
   @Post('refresh')
-  refresh(@Req() req: Request): Promise<AuthResponseDto> {
-    const payload = req.user as JwtRefreshValidationResult;
+  refresh(@Req() req: RefreshRequest): Promise<AuthResponseDto> {
+    const payload = req.user;
+    if (!payload) {
+      throw new UnauthorizedException('Refresh payload missing');
+    }
     return this.authService.refreshTokens(payload);
   }
 

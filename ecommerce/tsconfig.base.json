@@ -16,7 +16,9 @@
     "baseUrl": ".",
     "paths": {
       "@ecommerce/shared": ["libs/shared/src/index.ts"],
-      "@ecommerce/contracts": ["libs/contracts/src/index.ts"]
+      "@ecommerce/shared/*": ["libs/shared/src/*"],
+      "@ecommerce/contracts": ["libs/contracts/src/index.ts"],
+      "@ecommerce/contracts/*": ["libs/contracts/src/*"]
     }
   },
   "exclude": ["node_modules", "tmp"]

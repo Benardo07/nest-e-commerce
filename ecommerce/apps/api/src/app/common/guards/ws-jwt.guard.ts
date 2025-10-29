@@ -7,14 +7,13 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import type { Socket } from 'socket.io';
-import type { AppConfig } from '@ecommerce/shared/lib/config/types';
 import type { JwtPayload } from '../../auth/interfaces/jwt-payload.interface';
 
 @Injectable()
 export class WsJwtGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService<AppConfig>,
+    private readonly configService: ConfigService,
   ) {}
 
   canActivate(context: ExecutionContext): boolean {
@@ -28,8 +27,12 @@ export class WsJwtGuard implements CanActivate {
     }
 
     try {
+      const secret = this.configService.get<string>('auth.accessTokenSecret');
+      if (!secret) {
+        throw new UnauthorizedException('Missing authentication secret');
+      }
       const payload = this.jwtService.verify<JwtPayload>(token, {
-        secret: this.configService.getOrThrow<string>('auth.accessTokenSecret'),
+        secret,
       });
       client.data.user = payload;
       return true;
@@ -38,3 +41,4 @@ export class WsJwtGuard implements CanActivate {
     }
   }
 }
+

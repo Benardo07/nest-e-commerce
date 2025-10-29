@@ -12,7 +12,6 @@ import ms from 'ms';
 import { PrismaService, RedisService } from '@ecommerce/shared';
 import type { User } from '@prisma/client';
 import { UsersService } from '../users/users.service';
-import type { AppConfig } from '@ecommerce/shared/lib/config/types';
 import {
   AuthResponseDto,
   AuthTokensDto,
@@ -26,26 +25,35 @@ import type { JwtRefreshValidationResult } from './strategies/jwt-refresh.strate
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
-  private readonly accessTokenTtl: string;
-  private readonly refreshTokenTtl: string;
+  private readonly accessTokenTtlSeconds: number;
+  private readonly refreshTokenTtlSeconds: number;
   private readonly refreshTtlSeconds: number;
 
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService<AppConfig>,
+    private readonly configService: ConfigService,
     private readonly redisService: RedisService,
     private readonly prisma: PrismaService,
   ) {
-    this.accessTokenTtl = this.configService.get<string>(
+    const accessTokenTtlRaw = this.configService.get<string>(
       'auth.accessTokenTtl',
       '15m',
     );
-    this.refreshTokenTtl = this.configService.get<string>(
+    const refreshTokenTtlRaw = this.configService.get<string>(
       'auth.refreshTokenTtl',
       '7d',
     );
-    this.refreshTtlSeconds = Math.ceil(ms(this.refreshTokenTtl) / 1000);
+
+    this.accessTokenTtlSeconds = Math.max(
+      1,
+      Math.ceil(ms(accessTokenTtlRaw) / 1000),
+    );
+    this.refreshTokenTtlSeconds = Math.max(
+      1,
+      Math.ceil(ms(refreshTokenTtlRaw) / 1000),
+    );
+    this.refreshTtlSeconds = this.refreshTokenTtlSeconds;
   }
 
   async register(dto: RegisterDto): Promise<AuthResponseDto> {
@@ -176,7 +184,7 @@ export class AuthService {
 
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: this.configService.getOrThrow<string>('auth.accessTokenSecret'),
-      expiresIn: this.accessTokenTtl,
+      expiresIn: this.accessTokenTtlSeconds,
     });
 
     const tokenId = randomUUID();
@@ -187,7 +195,7 @@ export class AuthService {
         secret: this.configService.getOrThrow<string>(
           'auth.refreshTokenSecret',
         ),
-        expiresIn: this.refreshTokenTtl,
+        expiresIn: this.refreshTokenTtlSeconds,
       },
     );
 
@@ -196,7 +204,7 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
-      expiresIn: Math.ceil(ms(this.accessTokenTtl) / 1000),
+      expiresIn: this.accessTokenTtlSeconds,
     };
   }
 

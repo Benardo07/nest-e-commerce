@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { gql, useQuery } from '@apollo/client';
+import { gql } from '@apollo/client';
+import { useQuery } from '@apollo/client/react';
 import { Button } from '../../components/ui/button';
 
 const MY_ORDERS_QUERY = gql`
@@ -84,11 +85,11 @@ export const OrdersPage = () => {
             {loading ? (
               <tr>
                 <td className="px-6 py-6 text-center text-slate-500" colSpan={4}>
-                  Loading orders…
+                  Loading orders...
                 </td>
               </tr>
             ) : items.length ? (
-              items.map((order) => (
+              items.map((order: Order) => (
                 <tr key={order.id}>
                   <td className="px-6 py-4 font-mono text-xs text-slate-600">{order.id}</td>
                   <td className="px-6 py-4 text-slate-600">{order.productId}</td>

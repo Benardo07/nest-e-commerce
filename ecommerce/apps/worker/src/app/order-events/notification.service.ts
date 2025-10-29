@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@ecommerce/shared';
-import type { Notification } from '@prisma/client';
+import type { Notification, Prisma } from '@prisma/client';
 
 @Injectable()
 export class NotificationService {
@@ -11,7 +11,7 @@ export class NotificationService {
   async notify(
     recipientId: string,
     type: string,
-    payload: Record<string, unknown>,
+    payload: Prisma.InputJsonValue,
     orderId?: string,
   ): Promise<Notification> {
     const notification = await this.prisma.notification.create({

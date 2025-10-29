@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { OrderStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '@ecommerce/shared';
-import { KafkaProducerService } from '@ecommerce/shared/lib/kafka/kafka.producer';
+import { KafkaProducerService } from '@ecommerce/shared';
 import {
   ORDER_EVENT_VERSION,
   OrderEventEnvelope,

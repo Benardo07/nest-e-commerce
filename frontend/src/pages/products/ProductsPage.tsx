@@ -3,7 +3,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation } from '@tanstack/react-query';
-import { gql, useQuery as useApolloQuery } from '@apollo/client';
+import { gql } from '@apollo/client';
+import { useQuery as useApolloQuery } from '@apollo/client/react';
 import { httpClient } from '../../lib/http';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -109,7 +110,7 @@ export const ProductsPage = () => {
             </div>
             <div className="flex items-center gap-3">
               <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? 'Saving…' : 'Save product'}
+                {mutation.isPending ? 'Saving...' : 'Save product'}
               </Button>
               <Button type="button" variant="ghost" onClick={() => setIsCreating(false)}>
                 Cancel
@@ -121,7 +122,7 @@ export const ProductsPage = () => {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {loading ? (
-          <p className="text-sm text-slate-500">Loading your listings…</p>
+          <p className="text-sm text-slate-500">Loading your listings...</p>
         ) : products.length ? (
           products.map((product) => {
             const price = Number(product.price);

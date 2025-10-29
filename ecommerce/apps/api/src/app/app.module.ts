@@ -36,23 +36,32 @@ import { ChatModule } from './chat/chat.module';
     CacheModule.registerAsync({
       isGlobal: true,
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        store: await redisStore({
-          url: configService.getOrThrow<string>('redis.url'),
-        }),
-        ttl: configService.get<number>('redis.ttlSeconds'),
-      }),
+      useFactory: async (configService: ConfigService) => {
+        const ttlSecondsRaw = configService.get<number>('redis.ttlSeconds');
+        const ttl =
+          typeof ttlSecondsRaw === 'number' && Number.isFinite(ttlSecondsRaw)
+            ? ttlSecondsRaw
+            : undefined;
+
+        return {
+          store: await redisStore({
+            url: configService.getOrThrow<string>('redis.url'),
+          }),
+          ttl,
+        };
+      },
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'dist/apps/api/schema.gql'),
       sortSchema: true,
-      installSubscriptionHandlers: true,
     }),
-    ThrottlerModule.forRoot({
-      ttl: 60,
-      limit: 120,
-    }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60_000,
+        limit: 120,
+      },
+    ]),
     ScheduleModule.forRoot(),
     AuthModule,
     ProductModule,

@@ -2,24 +2,33 @@ import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-import type { AppConfig } from '@ecommerce/shared/lib/config/types';
 import { AppModule } from './app/app.module';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
-  const configService = app.get(ConfigService<AppConfig>);
+  const configService = app.get(ConfigService);
+
+  const clientId =
+    configService.get<string>('kafka.clientId') ?? 'ecommerce-worker';
+  const brokersValue = configService.get<string[] | string>('kafka.brokers');
+  const brokers = Array.isArray(brokersValue)
+    ? brokersValue
+    : typeof brokersValue === 'string'
+    ? brokersValue.split(',').map((broker) => broker.trim()).filter(Boolean)
+    : ['localhost:9093'];
+  const groupPrefix =
+    configService.get<string>('kafka.consumerGroupPrefix') ??
+    'ecommerce-consumer';
 
   const kafkaOptions: MicroserviceOptions = {
     transport: Transport.KAFKA,
     options: {
       client: {
-        clientId: `${configService.get<string>('kafka.clientId')}-worker`,
-        brokers: configService.get<string[]>('kafka.brokers'),
+        clientId: `${clientId}-worker`,
+        brokers,
       },
       consumer: {
-        groupId: `${configService.get<string>(
-          'kafka.consumerGroupPrefix',
-        )}-worker`,
+        groupId: `${groupPrefix}-worker`,
       },
     },
   };
@@ -33,3 +42,4 @@ async function bootstrap(): Promise<void> {
 }
 
 bootstrap();
+
